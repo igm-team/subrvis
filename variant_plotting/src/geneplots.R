@@ -19,6 +19,20 @@ ReadSubrgnBed <- function(bed.path) {
   return(ret)
 }
 
+ReadGenePvals <- function(pvals.path) {
+  # read each gene's pval
+  ret <- read.table(pvals.path, header=T, row.names=1, stringsAsFactors=F, comment.char="")
+  rownames(ret) <- toupper(rownames(ret))
+  return(ret)
+}
+
+ReadGeneSds <- function(sds.path) {
+  # read each gene's SD
+  ret <- read.table(sds.path, header=T, row.names=1, stringsAsFactors=F, comment.char="")
+  rownames(ret) <- toupper(rownames(ret))
+  return(ret)
+}
+
 ReadDomainMap <- function(domain.map.path) {
   # read domain map file
   ret <- read.table(domain.map.path, 

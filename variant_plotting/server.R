@@ -5,6 +5,8 @@ subrgn.data <- ReadSubrgnData("data/domains_table.txt")
 subrgn.bed <- ReadSubrgnBed("data/domains.bed")
 domain.map <- ReadDomainMap("data/cdd_table.txt")
 strand.map <- ReadStrandData("data/strand_data.txt")
+gene.pvals <- ReadGenePvals("data/domains_gene_pvals.txt")
+gene.sds <- ReadGeneSds("data/domains_gene_sds.txt")
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
@@ -76,7 +78,10 @@ shinyServer(function(input, output) {
     if (!is.null(variants)) {
       gene.plot <- AddVariants(gene.plot, gene.subrgns, subrgn.bed, variants, strand)
     }
-    
-    plot(gene.plot)
+
+    p.val <- gene.pvals[toupper(gene.name), ]
+    gene.sd <- gene.sds[toupper(gene.name), "percentile"]
+    plot(gene.plot + labs(x=paste0("Gene Position\nsubRVIS P-value: ", 
+                                   round(p.val, digits=3))))
   })
 })
