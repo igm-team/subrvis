@@ -8,10 +8,10 @@ strand.map <- ReadStrandData("data/strand_data.txt")
 gene.pvals <- ReadGenePvals("data/domains_gene_pvals.txt")
 gene.sds <- ReadGeneSds("data/domains_gene_sds.txt")
 
-# Define server logic required to draw a histogram
+# Define server logic
 shinyServer(function(input, output) {
 
-  # Expression that generates a histogram. The expression is
+  # Expression that generates the plot. The expression is
   # wrapped in a call to renderPlot to indicate that:
   #
   #  1) It is "reactive" and therefore should re-execute automatically
@@ -82,6 +82,9 @@ shinyServer(function(input, output) {
     p.val <- gene.pvals[toupper(gene.name), ]
     gene.sd <- gene.sds[toupper(gene.name), "percentile"]
     plot(gene.plot + labs(x=paste0("Gene Position\nsubRVIS P-value: ", 
-                                   round(p.val, digits=3))))
+                                   round(p.val, digits=3),
+                                   "\nsubRVIS SDP: ",
+                                   round(gene.sd, digits=1),
+                                   "%")))
   })
 })
