@@ -48,7 +48,7 @@ ReadDomainMap <- function(domain.map.path) {
   return(ret)
 }
 
-GetGeneSubrgn <- function(subrgn.data, subrgn.bed, domains.map, gene) {
+GetGeneSubrgn <- function(subrgn.data, subrgn.bed, domains.map, gene, rgn.type, score.type) {
   # extract sub region gene data
   gene.data <- subrgn.data[toupper(subrgn.data$gene)==toupper(gene), ]
   gene.bed <- subrgn.bed[toupper(subrgn.bed$gene)==toupper(gene), ]
@@ -77,20 +77,45 @@ GetGeneSubrgn <- function(subrgn.data, subrgn.bed, domains.map, gene) {
   
   gene.data$end <- gene.data$start + gene.data$size
   
-  gene.data$Domain <- sapply(strsplit(rownames(gene.data), ":"), function (x) x[[2]])
-  gene.data$Domain <- paste0(domains.map[gene.data$Domain, "name"], 
-                             " (", gene.data$Domain, ")")
+  gene.data[[rgn.type]] <- sapply(strsplit(rownames(gene.data), ":"), function (x) x[[2]])
+  if (!is.null(domains.map)) {
+    gene.data[[rgn.type]] <- paste0(domains.map[gene.data$Domain, "name"],
+                                    " (", gene.data$Domain, ")")
+  }
   
+  if (score.type == "Percentiles") {
+    gene.data$subRVIS <- gene.data$perc
+  }
   return(gene.data)
 }
 
-PlotGeneSkel <- function(gene.subrgns, title) {
+PlotGeneSkel <- function(gene.subrgns, title, rgn.type, score.type) {
   # plot gene skeleton without variants
-  gene.skel <- ggplot(data=gene.subrgns, aes(x=0, ymin=subRVIS, ymax=subRVIS, color=Domain)) + 
-    geom_segment(size=5, aes(y=min(subRVIS) - 1, 
-                                              x=start, 
-                                              xend=end, 
-                                              yend=min(subRVIS) - 1))
+  if (rgn.type == "Exons") { 
+    gene.skel <- ggplot(data=gene.subrgns, 
+                        aes(x=0, 
+                            ymin=subRVIS, 
+                            ymax=subRVIS, 
+                            color=Exons))
+  } else {
+    gene.skel <- ggplot(data=gene.subrgns, 
+                        aes(x=0, 
+                            ymin=subRVIS, 
+                            ymax=subRVIS, 
+                            color=Domains))
+  }
+  
+  if (score.type=="Percentiles")  {
+    gene.skel <- gene.skel + geom_segment(size=5, aes(y=min(subRVIS) - 3, 
+                                          x=start, 
+                                          xend=end, 
+                                          yend=min(subRVIS) - 3))
+  } else {
+    gene.skel <- gene.skel + geom_segment(size=5, aes(y=min(subRVIS) - 1, 
+                                                      x=start, 
+                                                      xend=end, 
+                                                      yend=min(subRVIS) - 1))
+  }
   
   # plot subRVIS lines
   gene.skel <- gene.skel + 

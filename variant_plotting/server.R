@@ -1,12 +1,31 @@
 library(shiny)
 source("src/geneplots.R")
 
-subrgn.data <- ReadSubrgnData("data/domains_table.txt")
-subrgn.bed <- ReadSubrgnBed("data/domains.bed")
-domain.map <- ReadDomainMap("data/cdd_table.txt")
+## functions
+Scores2Percentiles <- function(scores) {
+  stopifnot(is.numeric(scores))
+  return((rank(scores) / length(scores)) * 100)
+}
+
+# for domains
+dmn.data <- ReadSubrgnData("data/domains_table.txt")
+dmn.data$perc <- Scores2Percentiles(dmn.data$subRVIS)
+dmn.bed <- ReadSubrgnBed("data/domains.bed")
+dmn.map <- ReadDomainMap("data/cdd_table.txt")
+dmn.pvals <- ReadGenePvals("data/domains_gene_pvals.txt")
+dmn.sds <- ReadGeneSds("data/domains_gene_sds.txt")
+
+# for exons
+exn.data <- ReadSubrgnData("data/exons_table.txt")
+exn.data$perc <- Scores2Percentiles(exn.data$subRVIS)
+exn.bed <- ReadSubrgnBed("data/exons.bed")
+exn.map <- NULL
+exn.pvals <- ReadGenePvals("data/exons_gene_pvals.txt")
+exn.sds <- ReadGeneSds("data/exons_gene_sds.txt")
+
+# for all
 strand.map <- ReadStrandData("data/strand_data.txt")
-gene.pvals <- ReadGenePvals("data/domains_gene_pvals.txt")
-gene.sds <- ReadGeneSds("data/domains_gene_sds.txt")
+
 
 # Define server logic
 shinyServer(function(input, output) {
@@ -21,7 +40,16 @@ shinyServer(function(input, output) {
   GetGene <- eventReactive(input$plot, {
     input$gene
   })
+  
+  GetRgn <- eventReactive(input$plot, {
+    input$rgn
+  })
     
+  GetScoreType <- eventReactive(input$plot, {
+    input$score.type
+  })
+  
+  
   GetVariants <- eventReactive(input$plot, {
     
     if (is.null(input$variants) || input$variants == "") {
@@ -64,11 +92,27 @@ shinyServer(function(input, output) {
     
     
     variants <- GetVariants()
+    rgn <- GetRgn()
+    score.type <- GetScoreType()
     
-    gene.subrgns <- GetGeneSubrgn(subrgn.data, subrgn.bed, domain.map, gene)
+    if (rgn == "Domains") {
+      subrgn.data <- dmn.data
+      subrgn.bed <- dmn.bed
+      subrgn.map <- dmn.map
+      gene.pvals <- dmn.pvals
+      gene.sds <- dmn.sds
+    } else {
+      subrgn.data <- exn.data
+      subrgn.bed <- exn.bed
+      subrgn.map <- exn.map
+      gene.pvals <- exn.pvals
+      gene.sds <- exn.sds
+    }
+    
+    gene.subrgns <- GetGeneSubrgn(subrgn.data, subrgn.bed, subrgn.map, gene, rgn, score.type)
     gene.name <- unique(gene.subrgns$gene)
     stopifnot(length(gene.name)==1)
-    gene.plot <- PlotGeneSkel(gene.subrgns, gene.name)
+    gene.plot <- PlotGeneSkel(gene.subrgns, gene.name, rgn, score.type)
         
     gene.plot <- PlotConnectors(gene.plot, gene.subrgns, strand)
     if (strand == "-") {
@@ -81,10 +125,14 @@ shinyServer(function(input, output) {
 
     p.val <- gene.pvals[toupper(gene.name), ]
     gene.sd <- gene.sds[toupper(gene.name), "percentile"]
-    plot(gene.plot + labs(x=paste0("Gene Position\nsubRVIS P-value: ", 
+    
+    ylab.txt <- ifelse(score.type=="Percentiles", "subRVIS Percentile", "subRVIS Raw Score")
+    plot(gene.plot + labs(x=paste0("Gene Position\n",
+                                   "subRVIS P-value for known pathogenic mutations: ", 
                                    round(p.val, digits=3),
                                    "\nsubRVIS SDP: ",
                                    round(gene.sd, digits=1),
-                                   "%")))
+                                   "%"),
+                          y=ylab.txt))
   })
 })
