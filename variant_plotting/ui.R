@@ -43,7 +43,7 @@ shinyUI(fluidPage(
      percentiles across the genome. Though the raw scores offer superior resolution, the percentiles
      are easier to interpret as they are put into the context of the rest of the sub regions
      in the genome. Lower subRVIS scores and percentiles correspond to more intolerant regions. 
-     We have found that 35% and lower is a good threshold for the subRVIS percentiles - in other words, we are more inclined to believe
+     We have found that 35% and lower is a reasonable threshold for the subRVIS percentiles - in other words, we are more inclined to believe
      that a mutation is likely to cause disease when it falls in a sub region in the lower 35th percentile of
      subRVIS scores. However, by no means does that mean that mutations falling in sub regions below this percentile
 	 are necessarily pathogenic, nor does it mean that mutations falling in sub regions above this percentile
