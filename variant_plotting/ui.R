@@ -59,8 +59,7 @@ shinyUI(fluidPage(
      in determining whether the mutation is pathogenic. Unlike the p-value for 
      pathogenic mutations, this score can be constructed for both genes already 
      implicated in diseases and for genes not currently implicated. 
-     This score is based on the standard deviation of the gene's domain or exon subRVIS scores. 
-     What is reported is a conversion of the scores to a percentile. 
+     This score is the standard deviation of the gene's domain or exon raw subRVIS scores, converted to percentiles.
      A higher SDP indicates a higher degree of variation in the intolerance scores across the 
      gene's regions. Though these scores can be useful in predicting whether we expect 
      pathogenic mutations to cluster in specific sub regions within a given gene, 
