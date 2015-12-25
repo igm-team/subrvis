@@ -78,20 +78,6 @@ shinyServer(function(input, output) {
   
   
   output$genePlot <- renderPlot({
-    gene <- GetGene()
-    if (!(toupper(gene) %in% toupper(subrgn.data$gene))) {
-      err.msg <- paste("Gene", gene, "cannot be found.")
-      stop(err.msg)
-    }
-    
-    strand <- strand.map[toupper(rownames(strand.map)) == toupper(gene), ]
-    if((length(strand) != 1) || (!(strand %in% c("+", "-")))) {
-      err.msg <- paste("Gene", gene, "has no strand data.")
-      stop(err.msg)      
-    }
-    
-    
-    variants <- GetVariants()
     rgn <- GetRgn()
     score.type <- GetScoreType()
     
@@ -108,6 +94,21 @@ shinyServer(function(input, output) {
       gene.pvals <- exn.pvals
       gene.sds <- exn.sds
     }
+
+    gene <- GetGene()
+    if (!(toupper(gene) %in% toupper(subrgn.data$gene))) {
+      err.msg <- paste("Gene", gene, "cannot be found.")
+      stop(err.msg)
+    }
+    
+    strand <- strand.map[toupper(rownames(strand.map)) == toupper(gene), ]
+    if((length(strand) != 1) || (!(strand %in% c("+", "-")))) {
+      err.msg <- paste("Gene", gene, "has no strand data.")
+      stop(err.msg)      
+    }
+    
+    
+    variants <- GetVariants()
     
     gene.subrgns <- GetGeneSubrgn(subrgn.data, subrgn.bed, subrgn.map, gene, rgn, score.type)
     gene.name <- unique(gene.subrgns$gene)
