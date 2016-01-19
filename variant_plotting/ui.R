@@ -31,14 +31,19 @@ shinyUI(fluidPage(
 
     # Show a plot of the generated distribution
     mainPanel(
-      plotOutput("genePlot")
+      tabsetPanel(
+        tabPanel('Plot',
+                 plotOutput("genePlot")),
+        tabPanel('Table',
+                 dataTableOutput("var.table"))
+      )
     )),
   p("This online tool can be used to plot the domain or exon subRVIS scores of a given gene."),
   p("To the right of the plot is a legend. For domains, the legend denotes each aligned 
      conserved domain, with the CDD ID in parentheses next to the domain name. For exons,
      the legend denotes the exon number."),
   p("There is the option to plot either the raw subRVIS scores or the subRVIS percentiles. The raw subRVIS
-     scores are the scores obtained from directly applying the subRVIS methodology (see Gussow et al).
+     scores are the scores obtained from directly applying the subRVIS methodology (see ", a("Gussow et al", href="http://www.genomebiology.com/2016/17/1/9", target="_blank"), ").
      The subRVIS percentiles are a scaled version of the score, where the raw scores were converted to 
      percentiles across the genome. Though the raw scores offer superior resolution, the percentiles
      are easier to interpret as they are put into the context of the rest of the sub regions
@@ -52,7 +57,7 @@ shinyUI(fluidPage(
      interpretation of the results. The first, labelled 
     \"subRVIS P-value for known pathogenic mutations\", 
     assesses the relationship between subRVIS scores and the distribution of known 
-    pathogenic mutations (see Gussow et al). The subRVIS p-value for known pathogenic 
+    pathogenic mutations (see ", a("Gussow et al", href="http://www.genomebiology.com/2016/17/1/9", target="_blank"), "). The subRVIS p-value for known pathogenic 
     mutations obviously is only reported for known disease causing genes."),
   p("The second measure, labelled \"subRVIS SDP\", is intended as a general score 
      to help assess whether the location of a mutation in a gene is an important factor 
@@ -74,6 +79,7 @@ shinyUI(fluidPage(
     in whole exome sequence data from the NHLBI-ESP6500 data set. The score is designed to 
     rank the genic sub regions based on their intolerance to functional variation. A lower score
     indicates a more intolerant sub region, while a higher score indicates a more tolerant sub region."),
+  p("The paper can be found ", a("here.", href="http://www.genomebiology.com/2016/17/1/9", target="_blank")),
   h3("Terms of use"),
   p("The content of the subRVIS site is intended strictly for educational 
      and research purposes. The data derived from this website may not be used 
@@ -82,7 +88,7 @@ shinyUI(fluidPage(
   h3("Citation"),
   p("Gussow AB, Petrovski S, Wang Q, Allen AS, Goldstein DB. 
      The intolerance to functional genetic variation of protein domains predicts the localization of pathogenic mutations within genes. 
-     Under review."),
+     Genome Biology 2016, 17:9. doi:10.1186/s13059-016-0869-4."),
   h3("Contact"),
   p("For bug reports, please contact Ayal Gussow (abg2164@columbia.edu).")
 ))

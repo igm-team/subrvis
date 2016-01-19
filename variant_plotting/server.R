@@ -76,8 +76,7 @@ shinyServer(function(input, output) {
     return(variants)
   })
   
-  
-  output$genePlot <- renderPlot({
+  GetPlotData <- eventReactive(input$plot, {
     rgn <- GetRgn()
     score.type <- GetScoreType()
     
@@ -94,7 +93,7 @@ shinyServer(function(input, output) {
       gene.pvals <- exn.pvals
       gene.sds <- exn.sds
     }
-
+    
     gene <- GetGene()
     if (!(toupper(gene) %in% toupper(subrgn.data$gene))) {
       err.msg <- paste("Gene", gene, "cannot be found.")
@@ -113,27 +112,96 @@ shinyServer(function(input, output) {
     gene.subrgns <- GetGeneSubrgn(subrgn.data, subrgn.bed, subrgn.map, gene, rgn, score.type)
     gene.name <- unique(gene.subrgns$gene)
     stopifnot(length(gene.name)==1)
-    gene.plot <- PlotGeneSkel(gene.subrgns, gene.name, rgn, score.type)
-        
-    gene.plot <- PlotConnectors(gene.plot, gene.subrgns, strand)
-    if (strand == "-") {
-      gene.plot <- gene.plot + scale_x_reverse(label=function(x) -(x-max(gene.subrgns$end)))
-    }
-    
-    if (!is.null(variants)) {
-      gene.plot <- AddVariants(gene.plot, gene.subrgns, subrgn.bed, variants, strand)
-    }
 
     p.val <- gene.pvals[toupper(gene.name), ]
     gene.sd <- gene.sds[toupper(gene.name), "percentile"]
+    gene.bed <- subrgn.bed[toupper(subrgn.bed$gene) == toupper(gene), ]
     
-    ylab.txt <- ifelse(score.type=="Percentiles", "subRVIS Percentile", "subRVIS Raw Score")
+    return(list(gene.subrgns = gene.subrgns, 
+                subrgn.bed = subrgn.bed,
+                gene.bed = gene.bed,
+                gene.name = gene.name, 
+                p.val = p.val, 
+                gene.sd = gene.sd, 
+                variants = variants, 
+                rgn = rgn, 
+                score.type = score.type, 
+                strand = strand))
+  })
+  
+  
+  output$genePlot <- renderPlot({
+    
+    plot.data <- GetPlotData()
+    
+    gene.plot <- PlotGeneSkel(plot.data$gene.subrgns, plot.data$gene.name, plot.data$rgn, plot.data$score.type)
+    
+    gene.plot <- PlotConnectors(gene.plot, plot.data$gene.subrgns, plot.data$strand)
+    if (plot.data$strand == "-") {
+      gene.plot <- gene.plot + scale_x_reverse(label=function(x) -(x-max(plot.data$gene.subrgns$end)))
+    }
+    
+    if (!is.null(plot.data$variants)) {
+      gene.plot <- AddVariants(gene.plot, plot.data$gene.subrgns, plot.data$subrgn.bed, plot.data$variants, plot.data$strand)
+    }
+
+    ylab.txt <- ifelse(plot.data$score.type=="Percentiles", "subRVIS Percentile", "subRVIS Raw Score")
     plot(gene.plot + labs(x=paste0("Gene Position\n",
                                    "subRVIS P-value for known pathogenic mutations: ", 
-                                   round(p.val, digits=3),
+                                   round(plot.data$p.val, digits=3),
                                    "\nsubRVIS SDP: ",
-                                   round(gene.sd, digits=1),
+                                   round(plot.data$gene.sd, digits=1),
                                    "%"),
                           y=ylab.txt))
   })
+  
+  output$var.table = renderDataTable({
+    plot.data <- GetPlotData()
+    
+    plot.table <- plot.data$gene.subrgns
+    plot.table$var.count <- rep(0, nrow(plot.table))
+    
+    gene.chrom <- unique(plot.data$gene.bed$chrom)
+    stopifnot(length(gene.chrom) == 1)
+    
+    variants <- plot.data$variants
+    variants <- variants[variants$chrom == gene.chrom, ]
+    
+    positions <- variants$pos - 1 # convert to 0-based BED coords
+    
+    for (pos in positions) {
+      subrgn.name <- plot.data$gene.bed[pos >= plot.data$gene.bed$start & pos < plot.data$gene.bed$end, "subrgn"]
+      stopifnot(length(subrgn.name) <= 1)
+      
+      if(length(subrgn.name) == 1) {
+        plot.table[subrgn.name, "var.count"] <- plot.table[subrgn.name, "var.count"] + 1
+      }
+
+    }
+    
+    plot.table$name <- rownames(plot.table)
+
+    cols.to.plot <- c("name", "start", "end", "size", "coverage_percent", "subRVIS", plot.data$rgn, "var.count")
+    
+    plot.table <- plot.table[, cols.to.plot]
+    plot.table$start <- plot.table$start + 1
+    
+    if((plot.data$strand == "-") && (nrow(plot.table) != 1)) {
+      # Need to reverse coordinates
+      plot.table <- plot.table[order(-plot.table$start), ]
+      plot.table$start[1] <- 1
+      plot.table$end[1] <- plot.table$size[1]
+      for (i in 2:nrow(plot.table)) {
+        plot.table[i, "start"] <- plot.table$end[i-1] + 1
+        plot.table$end[i] <- plot.table$size[i] + plot.table$start[i] - 1
+      }
+    }
+    
+    colnames(plot.table) <- c("name", "start", "end", "size",
+                              "percent_covered", "score",
+                              "sub-region", "variant_count")
+    
+    return(plot.table)
+  })
+  
 })
