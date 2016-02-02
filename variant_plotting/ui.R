@@ -2,6 +2,9 @@ library(shiny)
 
 # Define UI
 shinyUI(fluidPage(
+  
+  # Google Analytics
+  tags$head(includeScript("google-analytics.js")),
 
   # Application title
   titlePanel("Plot Variants Across subRVIS Regions"),
@@ -41,7 +44,9 @@ shinyUI(fluidPage(
   p("This online tool can be used to plot the domain or exon subRVIS scores of a given gene."),
   p("To the right of the plot is a legend. For domains, the legend denotes each aligned 
      conserved domain, with the CDD ID in parentheses next to the domain name. For exons,
-     the legend denotes the exon number."),
+     the legend denotes the exon number. Note that genes that are on the minus strand
+     are plotted in reverse, i.e. regardless of its strand the first base of the gene
+     is at position zero at the leftmost point of the plot."),
   p("There is the option to plot either the raw subRVIS scores or the subRVIS percentiles. The raw subRVIS
      scores are the scores obtained from directly applying the subRVIS methodology (see ", a("Gussow et al", href="http://www.genomebiology.com/2016/17/1/9", target="_blank"), ").
      The subRVIS percentiles are a scaled version of the score, where the raw scores were converted to 
