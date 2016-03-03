@@ -76,7 +76,7 @@ shinyUI(fluidPage(
      currently there is not a relationship between these scores and whether known 
      pathogenic mutations actually do so."),
   h3("About"),
-  p("SubRVIS is a gene sub region based score intended to help in the intepretation of human
+  p("SubRVIS is a gene sub region based score intended to help in the interpretation of human
     sequence data. The sub regions are defined as the regions within the gene that aligned 
     to the Conserved Domain Database (http://www.ncbi.nlm.nih.gov/cdd/) and the unaligned regions 
     between each conserved domain alignment."),
