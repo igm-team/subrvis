@@ -1,8 +1,7 @@
 # SubRVIS
 This repository contains the software used in the subRVIS publication (http://bit.ly/2vY1KP5).
 
-Citation:
-
+## Citation
 Gussow AB, Petrovski S, Wang Q, Allen AS, Goldstein DB. The intolerance to functional genetic variation of protein domains predicts the localization of pathogenic mutations within genes. Genome Biology. 2016; 17(1):9.
 
 ## Regional Score Gene-Specific Prediction Test Model
